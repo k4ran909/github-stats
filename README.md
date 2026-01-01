@@ -153,3 +153,26 @@ releasing work publicly on the Web.
   [anuraghazra/github-readme-stats](https://github.com/anuraghazra/github-readme-stats)
 - Makes use of [GitHub Octicons](https://primer.style/octicons/) to precisely
   match the GitHub UI
+ 
+ #   V e r c e l   D e p l o y m e n t  
+  
+ Y o u   c a n   h o s t   t h i s   p r o j e c t   o n   V e r c e l   t o   g e n e r a t e   s t a t i s t i c s   d y n a m i c a l l y   v i a   a n   A P I .  
+  
+ 1 .     F o r k   t h i s   r e p o s i t o r y   o r   p u s h   y o u r   c o p y   t o   G i t H u b .  
+ 2 .     I m p o r t   t h e   p r o j e c t   i n t o   [ V e r c e l ] ( h t t p s : / / v e r c e l . c o m ) .  
+ 3 .     I n   V e r c e l   P r o j e c t   S e t t i n g s   >   E n v i r o n m e n t   V a r i a b l e s ,   a d d   t h e   f o l l o w i n g   v a r i a b l e s :  
+         *       ` A C C E S S _ T O K E N ` :   Y o u r   G i t H u b   P e r s o n a l   A c c e s s   T o k e n .  
+         *       ` G I T H U B _ A C T O R ` :   Y o u r   G i t H u b   U s e r n a m e .  
+         *       ( O p t i o n a l )   ` E X C L U D E D ` :   R e p o s i t o r i e s   t o   e x c l u d e   ( c o m m a   s e p a r a t e d ) .  
+         *       ( O p t i o n a l )   ` E X C L U D E D _ L A N G S ` :   L a n g u a g e s   t o   e x c l u d e   ( c o m m a   s e p a r a t e d ) .  
+         *       ( O p t i o n a l )   ` E X C L U D E _ F O R K E D _ R E P O S ` :   S e t   t o   ` t r u e `   t o   e x c l u d e   f o r k e d   r e p o s i t o r i e s .  
+ 4 .     O n c e   d e p l o y e d ,   y o u r   s t a t s   w i l l   b e   a v a i l a b l e   d y n a m i c a l l y   a t :  
+         *       ` h t t p s : / / < y o u r - p r o j e c t > . v e r c e l . a p p / a p i / o v e r v i e w `  
+         *       ` h t t p s : / / < y o u r - p r o j e c t > . v e r c e l . a p p / a p i / l a n g u a g e s `  
+  
+ Y o u   c a n   u s e   t h e s e   U R L s   d i r e c t l y   i n   y o u r   G i t H u b   R E A D M E :  
+ ` ` ` m d  
+ ! [ O v e r v i e w ] ( h t t p s : / / < y o u r - p r o j e c t > . v e r c e l . a p p / a p i / o v e r v i e w )  
+ ! [ L a n g u a g e s ] ( h t t p s : / / < y o u r - p r o j e c t > . v e r c e l . a p p / a p i / l a n g u a g e s )  
+ ` ` `  
+ 

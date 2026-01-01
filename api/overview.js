@@ -34,9 +34,11 @@ module.exports = async function handler(req, res) {
 
         let output = await fs.promises.readFile(templatePath, 'utf8');
 
-        const totalContributions = await stats.getTotalContributions();
-        const linesChanged = await stats.getLinesChanged();
-        const views = await stats.getViews();
+        const [totalContributions, linesChanged, views] = await Promise.all([
+            stats.getTotalContributions(),
+            stats.getLinesChanged(),
+            stats.getViews()
+        ]);
         const repoCount = stats._repos.size;
 
         const fmt = (n) => n.toLocaleString();

@@ -31,9 +31,11 @@ async function main() {
     // Generate Overview
     console.log("Generating overview.svg...");
     let overviewTpl = fs.readFileSync(path.join(__dirname, 'templates', 'overview.svg'), 'utf8');
-    const totalContributions = await stats.getTotalContributions();
-    const linesChanged = await stats.getLinesChanged();
-    const views = await stats.getViews();
+    const [totalContributions, linesChanged, views] = await Promise.all([
+        stats.getTotalContributions(),
+        stats.getLinesChanged(),
+        stats.getViews()
+    ]);
     const repoCount = stats._repos.size;
     const fmt = (n) => n.toLocaleString();
 

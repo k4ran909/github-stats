@@ -1,5 +1,5 @@
 
-// Optimized: uses GraphQL only, no expensive REST calls
+// Optimized: Hybrid GraphQL (for core stats) + Parallel REST (for traffic/lines)
 class Queries {
     constructor(username, accessToken) {
         this.username = username;
@@ -23,6 +23,30 @@ class Queries {
             console.error('GraphQL query failed', error.message);
             return {};
         }
+    }
+
+    async queryRest(path) {
+        if (path.startsWith('/')) path = path.substring(1);
+        const url = `https://api.github.com/${path}`;
+
+        // Retry loop for 202 (Accepted) which GitHub sends while calculating stats
+        for (let i = 0; i < 40; i++) {
+            try {
+                const res = await fetch(url, { headers: this.headers });
+
+                if (res.status === 202) {
+                    await new Promise(r => setTimeout(r, 2000));
+                    continue;
+                }
+                if (res.status === 204) return {}; // No content
+                if (res.ok) return await res.json();
+
+                return {}; // Other error
+            } catch (err) {
+                await new Promise(r => setTimeout(r, 1000));
+            }
+        }
+        return {};
     }
 
     static reposOverview(contribCursor, ownedCursor) {
@@ -96,6 +120,8 @@ class Stats {
         this._totalContributions = null;
         this._languages = null;
         this._repos = null;
+        this._linesChanged = null;
+        this._views = null;
 
         this._fetchPromise = null;
     }
@@ -187,6 +213,60 @@ class Stats {
             this._totalContributions += (byYearViewer[key]?.contributionCalendar?.totalContributions || 0);
         }
         return this._totalContributions;
+    }
+
+    async getLinesChanged() {
+        if (this._linesChanged !== null) return this._linesChanged;
+        let additions = 0;
+        let deletions = 0;
+        await this.getStats();
+
+        const repos = Array.from(this._repos);
+        const concurrency = 10;
+
+        const worker = async (repo) => {
+            const r = await this.queries.queryRest(`/repos/${repo}/stats/contributors`);
+            if (Array.isArray(r)) {
+                for (const authorObj of r) {
+                    if (authorObj.author?.login === this.username) {
+                        for (const week of (authorObj.weeks || [])) {
+                            additions += (week.a || 0);
+                            deletions += (week.d || 0);
+                        }
+                    }
+                }
+            }
+        };
+
+        for (let i = 0; i < repos.length; i += concurrency) {
+            await Promise.all(repos.slice(i, i + concurrency).map(worker));
+        }
+
+        this._linesChanged = [additions, deletions];
+        return this._linesChanged;
+    }
+
+    async getViews() {
+        if (this._views !== null) return this._views;
+        let total = 0;
+        await this.getStats();
+
+        const repos = Array.from(this._repos);
+        const concurrency = 10;
+
+        const worker = async (repo) => {
+            const r = await this.queries.queryRest(`/repos/${repo}/traffic/views`);
+            if (r.views) {
+                for (const view of r.views) total += (view.count || 0);
+            }
+        };
+
+        for (let i = 0; i < repos.length; i += concurrency) {
+            await Promise.all(repos.slice(i, i + concurrency).map(worker));
+        }
+
+        this._views = total;
+        return this._views;
     }
 }
 

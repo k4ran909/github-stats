@@ -6,13 +6,8 @@ module.exports = async function handler(req, res) {
     const accessToken = process.env.ACCESS_TOKEN;
     const user = process.env.GITHUB_ACTOR;
 
-    if (!accessToken) {
-        res.status(500).send('<svg><text>Error: ACCESS_TOKEN not set</text></svg>');
-        return;
-    }
-    // If not user, try to fetch viewer? Python code defaulted to "No Name" if viewer query failed, but required GITHUB_ACTOR env var.
-    if (!user) {
-        res.status(500).send('<svg><text>Error: GITHUB_ACTOR not set</text></svg>');
+    if (!accessToken || !user) {
+        res.status(500).send('<svg><text>Error: ACCESS_TOKEN or GITHUB_ACTOR not set</text></svg>');
         return;
     }
 
@@ -26,7 +21,6 @@ module.exports = async function handler(req, res) {
         await stats.getStats();
 
         const templatePath = path.join(process.cwd(), 'templates', 'overview.svg');
-        // Check if template exists
         if (!fs.existsSync(templatePath)) {
             res.status(500).send(`<svg><text>Error: Template not found at ${templatePath}</text></svg>`);
             return;
@@ -34,19 +28,22 @@ module.exports = async function handler(req, res) {
 
         let output = await fs.promises.readFile(templatePath, 'utf8');
 
-        const totalContributions = await stats.getTotalContributions();
+        // Parallelize fetching of detailed stats
+        const [totalContributions, linesChanged, views] = await Promise.all([
+            stats.getTotalContributions(),
+            stats.getLinesChanged(),
+            stats.getViews()
+        ]);
         const repoCount = stats._repos.size;
 
         const fmt = (n) => n.toLocaleString();
-
-        // Use global replace if needed, but python 're.sub' replaces all occurrences?
-        // JS replace string only replaces first occurrence. Use replaceAll or regex.
-        // The templates use {{ name }} etc.
 
         output = output.replace(/{{ name }}/g, stats._name);
         output = output.replace(/{{ stars }}/g, fmt(stats._stargazers));
         output = output.replace(/{{ forks }}/g, fmt(stats._forks));
         output = output.replace(/{{ contributions }}/g, fmt(totalContributions));
+        output = output.replace(/{{ lines_changed }}/g, fmt(linesChanged[0] + linesChanged[1]));
+        output = output.replace(/{{ views }}/g, fmt(views));
         output = output.replace(/{{ repos }}/g, fmt(repoCount));
 
         res.setHeader('Content-Type', 'image/svg+xml');

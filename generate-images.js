@@ -31,11 +31,7 @@ async function main() {
     // Generate Overview
     console.log("Generating overview.svg...");
     let overviewTpl = fs.readFileSync(path.join(__dirname, 'templates', 'overview.svg'), 'utf8');
-    const [totalContributions, linesChanged, views] = await Promise.all([
-        stats.getTotalContributions(),
-        stats.getLinesChanged(),
-        stats.getViews()
-    ]);
+    const totalContributions = await stats.getTotalContributions();
     const repoCount = stats._repos.size;
     const fmt = (n) => n.toLocaleString();
 
@@ -43,8 +39,6 @@ async function main() {
     overviewTpl = overviewTpl.replace(/{{ stars }}/g, fmt(stats._stargazers));
     overviewTpl = overviewTpl.replace(/{{ forks }}/g, fmt(stats._forks));
     overviewTpl = overviewTpl.replace(/{{ contributions }}/g, fmt(totalContributions));
-    overviewTpl = overviewTpl.replace(/{{ lines_changed }}/g, fmt(linesChanged[0] + linesChanged[1]));
-    overviewTpl = overviewTpl.replace(/{{ views }}/g, fmt(views));
     overviewTpl = overviewTpl.replace(/{{ repos }}/g, fmt(repoCount));
 
     fs.writeFileSync(path.join(genDir, 'overview.svg'), overviewTpl);

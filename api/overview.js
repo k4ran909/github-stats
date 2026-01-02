@@ -34,11 +34,7 @@ module.exports = async function handler(req, res) {
 
         let output = await fs.promises.readFile(templatePath, 'utf8');
 
-        const [totalContributions, linesChanged, views] = await Promise.all([
-            stats.getTotalContributions(),
-            stats.getLinesChanged(),
-            stats.getViews()
-        ]);
+        const totalContributions = await stats.getTotalContributions();
         const repoCount = stats._repos.size;
 
         const fmt = (n) => n.toLocaleString();
@@ -51,8 +47,6 @@ module.exports = async function handler(req, res) {
         output = output.replace(/{{ stars }}/g, fmt(stats._stargazers));
         output = output.replace(/{{ forks }}/g, fmt(stats._forks));
         output = output.replace(/{{ contributions }}/g, fmt(totalContributions));
-        output = output.replace(/{{ lines_changed }}/g, fmt(linesChanged[0] + linesChanged[1]));
-        output = output.replace(/{{ views }}/g, fmt(views));
         output = output.replace(/{{ repos }}/g, fmt(repoCount));
 
         res.setHeader('Content-Type', 'image/svg+xml');
